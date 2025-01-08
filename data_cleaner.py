@@ -1,15 +1,16 @@
 import pandas as pd
+import geopandas as gpd
 
-def cleaner(data):
+european_countries = [
+    'Albania', 'Azerbaijan', 'Andorra', 'Armenia', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina',
+    'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France',
+    'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Latvia', 
+    'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 
+    'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 
+    'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Turkey', 'Ukraine', 'United Kingdom'
+]
 
-    european_countries = [
-        'Albania', 'Andorra', 'Armenia', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina',
-        'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France',
-        'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Latvia', 
-        'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 
-        'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 
-        'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Turkey', 'Ukraine', 'United Kingdom'
-    ]
+def cleaner(data, countries=european_countries):
 
     data = pd.read_csv("./data/alcohol-consumption.csv")
 
@@ -26,8 +27,41 @@ def cleaner(data):
     data = data.reset_index(drop=True)
     data = data.drop(columns=['2020_projection' ,'2025_projection'])
 
+    data['dominant_alcohol'] = data[['beer_percentage', 'wine_percentage', 'spirits_percentage', 'other_percentage']].idxmax(axis=1)
+    data['dominant_alcohol'] = data['dominant_alcohol'].map({
+        'beer_percentage': 'Beer',
+        'wine_percentage': 'Wine',
+        'spirits_percentage': 'Spirits',
+        'other_percentage': 'Other'
+    })
+
     # print(data)
     # print(len(european_countries))
     # print(len(data))
 
     return data
+
+def geo_cleaner(geodata, countries=european_countries):
+
+    geodata = gpd.read_file('./europe.geojson')
+
+    for index, country in geodata['NAME'].items():
+        if country == 'The former Yugoslav Republic of Macedonia':
+            geodata.at[index, 'NAME'] = 'North Macedonia'
+        if country == 'Republic of Moldova':
+            geodata.at[index, 'NAME'] = 'Moldova'
+
+    for index, country in geodata['NAME'].items():
+        if country not in countries:
+            geodata.drop(index, inplace=True)
+
+    geodata.rename(columns={'NAME': 'country'}, inplace=True)
+
+    geodata = geodata.sort_values(by='country')
+    geodata = geodata.reset_index(drop=True)
+
+    geodata = geodata.drop(columns=['FID', 'FIPS', 'ISO2', 'ISO3', 'UN', 'AREA', 'POP2005', 'REGION', 'SUBREGION', 'LON', 'LAT'])
+
+    # print(geodata['country'])
+
+    return geodata
