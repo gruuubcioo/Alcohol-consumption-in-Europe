@@ -43,7 +43,7 @@ def cleaner(data, countries=european_countries):
 
 def geo_cleaner(geodata, countries=european_countries):
 
-    geodata = gpd.read_file('./europe.geojson')
+    geodata = gpd.read_file('./data/europe.geojson')
 
     for index, country in geodata['NAME'].items():
         if country == 'The former Yugoslav Republic of Macedonia':
