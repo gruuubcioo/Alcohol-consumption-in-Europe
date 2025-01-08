@@ -11,3 +11,5 @@
 
 
 ![img](./img/europe_alcohol_map.png)
+
+![img](./img/kolo.png)
