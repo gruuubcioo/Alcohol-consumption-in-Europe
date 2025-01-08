@@ -1,15 +1,16 @@
 import pandas as pd
+import geopandas as gpd
 
-def cleaner(data):
+european_countries = [
+    'Albania', 'Azerbaijan', 'Andorra', 'Armenia', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina',
+    'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France',
+    'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Latvia', 
+    'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 
+    'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 
+    'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Turkey', 'Ukraine', 'United Kingdom'
+]
 
-    european_countries = [
-        'Albania', 'Andorra', 'Armenia', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina',
-        'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France',
-        'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Latvia', 
-        'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 
-        'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Serbia', 
-        'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Turkey', 'Ukraine', 'United Kingdom'
-    ]
+def cleaner(data, countries=european_countries):
 
     data = pd.read_csv("./data/alcohol-consumption.csv")
 
@@ -31,3 +32,26 @@ def cleaner(data):
     # print(len(data))
 
     return data
+
+def geo_cleaner(geodata, countries=european_countries):
+
+    geodata = gpd.read_file('./europe.geojson')
+
+    for index, country in geodata['NAME'].items():
+        if country == 'The former Yugoslav Republic of Macedonia':
+            geodata.at[index, 'NAME'] = 'North Macedonia'
+        if country == 'Republic of Moldova':
+            geodata.at[index, 'NAME'] = 'Moldova'
+
+    for index, country in geodata['NAME'].items():
+        if country not in countries:
+            geodata.drop(index, inplace=True)
+
+    geodata.rename(columns={'NAME': 'country'}, inplace=True)
+
+    geodata = geodata.sort_values(by='country')
+    geodata = geodata.reset_index(drop=True)
+
+    print(geodata['country'])
+
+    return geodata
