@@ -1,4 +1,5 @@
 # Alcohol Consumption in Europe Data Project
+This project was created for our Data Science Student Research Group
 
 
 ## The project visualizes alcohol consumption patterns across Europe, focusing on various types of alcoholic beverages.
